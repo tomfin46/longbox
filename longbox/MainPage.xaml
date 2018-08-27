@@ -10,19 +10,17 @@
 
     <Grid>
         <NavigationView
-        Margin="0,12,0,0"
-        Grid.Row="1"
-        x:Name="nvSample"
-        Header="This is header text."
-        IsBackButtonVisible="Collapsed"
-        >
+            x:Name="NavView"
+            Grid.Row="1"
+            Header="This is header text."
+            IsBackButtonVisible="Collapsed"
+            >
             <NavigationView.MenuItems>
-                <NavigationViewItem Icon="Play" Content="Menu Item1" Tag="SamplePage1" />
+                <NavigationViewItem Icon="Play" Content="Library" Tag="library" />
                 <NavigationViewItemSeparator/>
-                <NavigationViewItem Icon="Save" Content="Menu Item2" Tag="SamplePage2" />
-                <NavigationViewItem Icon="Refresh" Content="Menu Item3" Tag="SamplePage3" />
+                <NavigationViewItem Icon="Folder" Content="Folders" Tag="folder" />
             </NavigationView.MenuItems>
-            <Frame x:Name="contentFrame">
+            <Frame x:Name="ContentFrame">
                 <ScrollViewer>
                     <StackPanel Orientation="Horizontal">
                         <StackPanel Orientation="Vertical">

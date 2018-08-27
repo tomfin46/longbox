@@ -1,0 +1,25 @@
+﻿<Page
+    x:Class="longbox.Pages.LibraryPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:longbox.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:longbox.Models"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <StackPanel>
+            <TextBlock Text="{x:Bind Library.CurrentBox.Name, Mode=OneWay}" />
+            <Button Content="Up" Click="Button_Click" />
+            <GridView ItemsSource="{x:Bind Library.Items, Mode=OneWay}" IsItemClickEnabled="True" ItemClick="GridView_ItemClick">
+            <GridView.ItemTemplate>
+                <DataTemplate x:DataType="models:IBoxItem">
+                    <TextBlock  Text="{x:Bind Name}"/>
+                </DataTemplate>
+            </GridView.ItemTemplate>
+        </GridView>
+        </StackPanel>
+    </Grid>
+</Page>
