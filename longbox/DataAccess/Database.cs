@@ -1,31 +1,19 @@
-﻿using longbox.Model;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace longbox.DataAccess
 {
-    class Database
+    class Database : DatabaseExecutor
     {
+        public FolderModel Folders { get; }
+
+        public Database()
+        {
+            Folders = new FolderModel();
+        }
+
         public void Migrate()
         {
             ExecuteWithContext(context => context.Database.Migrate());
-        }
-
-        private void ExecuteWithContext(Action<LongboxContext> action)
-        {
-            using (var context = new LongboxContext())
-            {
-                action(context);
-            }
-        }
-
-        private Task ExecuteWithContextAsync(Func<LongboxContext, Task> action)
-        {
-            using (var context = new LongboxContext())
-            {
-                return action(context);
-            }
         }
     }
 }
