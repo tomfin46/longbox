@@ -2,6 +2,7 @@
 using SharpCompress.Readers;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -34,9 +35,15 @@ namespace longbox
         private Stream comicStream;
         private int pageNumber = 0;
 
+        private int lastFlipIndex = 0;
+
+        private ObservableCollection<BitmapImage> pages = new ObservableCollection<BitmapImage>();
+
         public MainPage()
         {
             this.InitializeComponent();
+
+
         }
 
         private async void Choose_Folder_Button_Click(object sender, RoutedEventArgs e)
@@ -78,18 +85,29 @@ namespace longbox
 
                     this.comicStream = await (item as StorageFile).OpenStreamForReadAsync();
                     this.comicReader = ReaderFactory.Open(this.comicStream, new ReaderOptions() { LeaveStreamOpen = true });
-                    var comicArchive = ArchiveFactory.Open(this.comicStream);
-                    var sampleFile = await localFolder.CreateFileAsync($"{this.pageNumber}", CreationCollisionOption.OpenIfExists);
-                            
-                    this.comicReader.MoveToNextEntry();
+                    
 
-                    if (!comicReader.Entry.IsDirectory)
+                    while(this.comicReader.MoveToNextEntry() && pageNumber < 10)
                     {
-                        this.txtBlock.Text += $"\nFile {comicReader.Entry.Key}\n";
-                        using (var entryStream = comicReader.OpenEntryStream())
-                        using (var writeStream = await sampleFile.OpenStreamForWriteAsync())
+                        if (!comicReader.Entry.IsDirectory)
                         {
-                            entryStream.CopyTo(writeStream);
+                            this.txtBlock.Text += $"\nFile {comicReader.Entry.Key}\n";
+                            var sampleFile = await localFolder.CreateFileAsync($"{this.pageNumber}", CreationCollisionOption.OpenIfExists);
+
+                            using (var entryStream = comicReader.OpenEntryStream())
+                            using (var writeStream = await sampleFile.OpenStreamForWriteAsync())
+                            {
+                                entryStream.CopyTo(writeStream);
+                            }
+
+                            using (var stream = await sampleFile.OpenReadAsync())
+                            {
+                                BitmapImage bitmapImage = new BitmapImage();
+                                //bitmapImage.DecodePixelWidth = 600; //match the target Image.Width, not shown
+                                await bitmapImage.SetSourceAsync(stream);
+                                pages.Add(bitmapImage);
+                            }
+                            this.pageNumber++;
                         }
                     }
                 }
@@ -103,33 +121,43 @@ namespace longbox
             return file;
         }
 
-        private async Task<StorageFile> CopyNextPage()
-        {
-            this.pageNumber += 1;
-            var file = await localFolder.CreateFileAsync($"{this.pageNumber}", CreationCollisionOption.OpenIfExists);
-            return await CopyPage(file);
-        }
-
-        private async Task<StorageFile> CopyPage(StorageFile file)
+        private async Task CopyNextPage()
         {
             if(this.comicReader.MoveToNextEntry())
             {
                 if (!comicReader.Entry.IsDirectory)
                 {
                     this.txtBlock.Text += $"\nFile {comicReader.Entry.Key}\n";
+                    var sampleFile = await localFolder.CreateFileAsync($"{this.pageNumber}", CreationCollisionOption.OpenIfExists);
+
                     using (var entryStream = comicReader.OpenEntryStream())
-                    using (var writeStream = await file.OpenStreamForWriteAsync())
+                    using (var writeStream = await sampleFile.OpenStreamForWriteAsync())
                     {
                         entryStream.CopyTo(writeStream);
                     }
+
+                    using (var stream = await sampleFile.OpenReadAsync())
+                    {
+                        BitmapImage bitmapImage = new BitmapImage();
+                        //bitmapImage.DecodePixelWidth = 600; //match the target Image.Width, not shown
+                        await bitmapImage.SetSourceAsync(stream);
+                        pages.Add(bitmapImage);
+                    }
+                    this.pageNumber++;
                 }
+                //if (!comicReader.Entry.IsDirectory)
+                //{
+                //    this.txtBlock.Text += $"\nFile {comicReader.Entry.Key}\n";
+                //    using (var entryStream = comicReader.OpenEntryStream())
+                //    using (var writeStream = await file.OpenStreamForWriteAsync())
+                //    {
+                //        entryStream.CopyTo(writeStream);
+                //    }
+                //}
             } else
             {
                 DisposeStreams();
             }
-
-
-            return file;
         }
 
         private async Task SetImage(StorageFile file)
@@ -139,26 +167,15 @@ namespace longbox
                 BitmapImage bitmapImage = new BitmapImage();
                 bitmapImage.DecodePixelWidth = 600; //match the target Image.Width, not shown
                 await bitmapImage.SetSourceAsync(stream);
-                imgPage.Source = bitmapImage;
+                //imgPage.Source = bitmapImage;
+                pages.Add(bitmapImage);
 
             }
-        }
-
-        private async void Previous_Button_Click(object sender, RoutedEventArgs e)
-        {
-            if (this.pageNumber == 0)
-            {
-                return;
-            }
-
-            var file = await CopyPrevPage();
-            await SetImage(file);
         }
 
         private async void Next_Button_Click(object sender, RoutedEventArgs e)
         {
-            var file = await CopyNextPage();
-            await SetImage(file);
+            await CopyNextPage();
         }
 
         private void Close_Button_Click(object sender, RoutedEventArgs e)
@@ -168,8 +185,11 @@ namespace longbox
 
         private async void Open_Comic_Button_Click(object sender, RoutedEventArgs e)
         {
-            StorageFile file = await localFolder.GetFileAsync("0");
-            await SetImage(file);
+            for (int i = 0; i < 10; i++)
+            {
+                StorageFile file = await localFolder.GetFileAsync($"{i}");
+                await SetImage(file);
+            }
         }
 
         private void DisposeStreams ()
@@ -177,6 +197,26 @@ namespace longbox
             comicReader.Dispose();
             comicStream.Dispose();
 
+        }
+
+        private async void FlipView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (this.lastFlipIndex == flip.SelectedIndex)
+            {
+                return;
+            }
+            
+            if (this.lastFlipIndex > flip.SelectedIndex)
+            {
+                this.lastFlipIndex = flip.SelectedIndex;
+                return;
+            }
+
+            if (this.lastFlipIndex < flip.SelectedIndex)
+            {
+                await CopyNextPage();
+                this.lastFlipIndex = flip.SelectedIndex;
+            }
         }
     }
 }

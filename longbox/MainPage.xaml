@@ -34,13 +34,19 @@
 
 
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="Previous" Click="Previous_Button_Click" />
                                 <Button Content="Next" Click="Next_Button_Click" />
                             </StackPanel>
 
                             <Button Content="Close" Click="Close_Button_Click" />
                         
                             <Image x:Name="imgPage" />
+                            <FlipView x:Name="flip" ItemsSource="{x:Bind pages}" SelectionChanged="FlipView_SelectionChanged">
+                                <FlipView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding}" Stretch="UniformToFill" />
+                                    </DataTemplate>
+                                </FlipView.ItemTemplate>
+                            </FlipView>
                         </StackPanel>
 
                         <TextBlock x:Name="txtBlock" />
