@@ -1,4 +1,5 @@
-﻿using System;
+﻿using longbox.DataAccess;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,6 +23,9 @@ namespace longbox
     /// </summary>
     sealed partial class App : Application
     {
+
+        private Database database = new Database();
+
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -30,6 +34,8 @@ namespace longbox
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+
+            database.Migrate();
         }
 
         /// <summary>
