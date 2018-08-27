@@ -1,4 +1,4 @@
-﻿using SharpCompress.Archives;
+using SharpCompress.Archives;
 using SharpCompress.Readers;
 using System;
 using System.Collections.Generic;
@@ -17,6 +17,8 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
+
+using longbox.Controllers;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -37,6 +39,8 @@ namespace longbox
         public MainPage()
         {
             this.InitializeComponent();
+
+            new Navigation(this.NavView, this.ContentFrame);
         }
 
         private async void Choose_Folder_Button_Click(object sender, RoutedEventArgs e)
